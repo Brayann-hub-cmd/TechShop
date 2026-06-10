@@ -4,9 +4,6 @@ import { MEDIA_URL } from '../../api';
 
 const ProductCard = ({ product }) => {
   const imageUrl = product.image 
-    ? `${MEDIA_URL}${product.image}` 
-    : null;
-
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="h-48 bg-gray-100">

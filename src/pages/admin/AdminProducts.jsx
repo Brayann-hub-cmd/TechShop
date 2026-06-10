@@ -166,7 +166,7 @@ const AdminProducts = () => {
 
   const getImageUrl = (produit) => {
     if (produit.image && !imageErrors[produit.id]) {
-      return `${MEDIA_URL}${produit.image}`;
+      return `${produit.image}`;
     }
     return null;
   };
@@ -312,7 +312,7 @@ const AdminProducts = () => {
                     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                       {formData.image ? (
                         <img
-                          src={URL.createObjectURL(formData.image)}
+                          src={formData.image}
                           alt="Apercu"
                           className="w-full h-full object-cover"
                         />
