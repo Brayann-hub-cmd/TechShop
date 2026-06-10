@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { MEDIA_URL } from '../api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
-import { FiCreditCard, FiSmartphone, FiDollarSign, FiMapPin, FiPhone, FiCheck } from 'react-icons/fi';
+import { FiCreditCard, FiSmartphone, FiDollarSign, FiMapPin, FiPhone, FiCheck, FiImage } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const CheckoutPage = () => {
@@ -12,6 +13,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [imageErrors, setImageErrors] = useState({});
   
   const [livraison, setLivraison] = useState({
     adresse_livraison: '',
@@ -64,7 +66,7 @@ const CheckoutPage = () => {
         mode_paiement: paiement.mode_paiement,
       });
       
-      toast.success('Commande creee avec succes !');
+      toast.success('Commande creee avec succes');
       setStep(3);
       
       setTimeout(() => {
@@ -76,6 +78,17 @@ const CheckoutPage = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleImageError = (ligneId) => {
+    setImageErrors({ ...imageErrors, [ligneId]: true });
+  };
+
+  const getImageUrl = (ligne) => {
+    if (ligne.produit_image && !imageErrors[ligne.id]) {
+      return `${MEDIA_URL}${ligne.produit_image}`;
+    }
+    return null;
   };
 
   if (loading) return <LoadingSpinner />;
@@ -100,7 +113,7 @@ const CheckoutPage = () => {
           <div className="text-green-500 text-6xl mb-6">
             <FiCheck className="mx-auto" />
           </div>
-          <h2 className="text-3xl font-bold text-[#800080] mb-4">Commande confirmee !</h2>
+          <h2 className="text-3xl font-bold text-[#800080] mb-4">Commande confirmee</h2>
           <p className="text-gray-500 mb-6">
             Votre commande a ete enregistree avec succes.
           </p>
@@ -118,7 +131,6 @@ const CheckoutPage = () => {
           <span>Finaliser la commande</span>
         </h1>
 
-        {/* Etapes */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-4">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
@@ -136,7 +148,6 @@ const CheckoutPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Formulaire */}
           <div className="lg:col-span-2">
             {step === 1 && (
               <div className="bg-white rounded-lg shadow-md p-8">
@@ -151,7 +162,6 @@ const CheckoutPage = () => {
                       Adresse complete
                     </label>
                     <textarea
-                      name="adresse_livraison"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#9370DB] focus:border-[#9370DB]"
                       placeholder="Votre adresse de livraison"
                       value={livraison.adresse_livraison}
@@ -168,7 +178,6 @@ const CheckoutPage = () => {
                     </label>
                     <input
                       type="tel"
-                      name="telephone"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#9370DB] focus:border-[#9370DB]"
                       placeholder="+237 6XX XXX XXX"
                       value={livraison.telephone}
@@ -264,14 +273,27 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          {/* Resume */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-2xl font-bold text-[#800080] mb-4">Ma commande</h2>
               
               <div className="space-y-3 max-h-60 overflow-y-auto mb-4">
                 {panier.lignes.map((ligne) => (
-                  <div key={ligne.id} className="flex justify-between items-center">
+                  <div key={ligne.id} className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {getImageUrl(ligne) ? (
+                        <img
+                          src={getImageUrl(ligne)}
+                          alt={ligne.produit_nom}
+                          className="w-full h-full object-cover"
+                          onError={() => handleImageError(ligne.id)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <FiImage className="text-gray-300" />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">{ligne.produit_nom}</p>
                       <p className="text-xs text-gray-500">Qte: {ligne.quantite}</p>

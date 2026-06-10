@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api';
+import { MEDIA_URL } from '../../api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import { 
@@ -9,7 +10,9 @@ import {
   FiX, 
   FiSave,
   FiPackage,
-  FiSearch
+  FiSearch,
+  FiImage,
+  FiUpload
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -22,6 +25,7 @@ const AdminProducts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [imageErrors, setImageErrors] = useState({});
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -29,6 +33,7 @@ const AdminProducts = () => {
     prix: '',
     stock: '',
     categorie: '',
+    image: null,
   });
 
   useEffect(() => {
@@ -62,6 +67,7 @@ const AdminProducts = () => {
         prix: product.prix || '',
         stock: product.stock || '',
         categorie: product.categorie || '',
+        image: null,
       });
     } else {
       setEditingProduct(null);
@@ -71,6 +77,7 @@ const AdminProducts = () => {
         prix: '',
         stock: '',
         categorie: '',
+        image: null,
       });
     }
     setShowModal(true);
@@ -85,14 +92,22 @@ const AdminProducts = () => {
       prix: '',
       stock: '',
       categorie: '',
+      image: null,
     });
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === 'image') {
+      setFormData({
+        ...formData,
+        image: e.target.files[0],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -101,24 +116,33 @@ const AdminProducts = () => {
     try {
       setSaving(true);
       
-      const data = {
-        ...formData,
-        prix: parseFloat(formData.prix),
-        stock: parseInt(formData.stock),
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('nom', formData.nom);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('prix', parseFloat(formData.prix));
+      formDataToSend.append('stock', parseInt(formData.stock));
+      formDataToSend.append('categorie', formData.categorie);
+      
+      if (formData.image) {
+        formDataToSend.append('image', formData.image);
+      }
 
       if (editingProduct) {
-        await api.put(`produits/${editingProduct.id}/`, data);
+        await api.put(`produits/${editingProduct.id}/`, formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         toast.success('Produit mis a jour avec succes');
       } else {
-        await api.post('produits/', data);
+        await api.post('produits/', formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         toast.success('Produit cree avec succes');
       }
 
       handleCloseModal();
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      toast.error(err.response?.data?.message || "Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
@@ -134,6 +158,17 @@ const AdminProducts = () => {
     } catch (err) {
       toast.error('Erreur lors de la suppression');
     }
+  };
+
+  const handleImageError = (produitId) => {
+    setImageErrors({ ...imageErrors, [produitId]: true });
+  };
+
+  const getImageUrl = (produit) => {
+    if (produit.image && !imageErrors[produit.id]) {
+      return `${MEDIA_URL}${produit.image}`;
+    }
+    return null;
   };
 
   const filteredProduits = produits.filter(produit =>
@@ -161,7 +196,6 @@ const AdminProducts = () => {
           </button>
         </div>
 
-        {/* Barre de recherche */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
           <div className="relative">
             <input
@@ -175,7 +209,6 @@ const AdminProducts = () => {
           </div>
         </div>
 
-        {/* Tableau des produits */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="table w-full">
@@ -193,13 +226,19 @@ const AdminProducts = () => {
                   <tr key={produit.id}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="avatar">
-                          <div className="mask mask-squircle w-12 h-12">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                          {getImageUrl(produit) ? (
                             <img
-                              src={produit.image || 'https://via.placeholder.com/48'}
+                              src={getImageUrl(produit)}
                               alt={produit.nom}
+                              className="w-full h-full object-cover"
+                              onError={() => handleImageError(produit.id)}
                             />
-                          </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <FiImage className="text-gray-300" />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="font-bold">{produit.nom}</div>
@@ -248,7 +287,6 @@ const AdminProducts = () => {
         </div>
       </div>
 
-      {/* Modal Ajout/Modification */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -266,6 +304,42 @@ const AdminProducts = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Image du produit
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                      {formData.image ? (
+                        <img
+                          src={URL.createObjectURL(formData.image)}
+                          alt="Apercu"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : editingProduct?.image ? (
+                        <img
+                          src={`${MEDIA_URL}${editingProduct.image}`}
+                          alt={editingProduct.nom}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FiImage className="text-2xl text-gray-300" />
+                      )}
+                    </div>
+                    <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition">
+                      <FiUpload />
+                      <span>Choisir une image</span>
+                      <input
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        onChange={handleChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nom du produit

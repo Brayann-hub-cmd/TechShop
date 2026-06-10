@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { MEDIA_URL } from '../api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
-import { FiShoppingCart, FiMinus, FiPlus, FiArrowLeft, FiPackage } from 'react-icons/fi';
+import { FiShoppingCart, FiMinus, FiPlus, FiArrowLeft, FiPackage, FiImage } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const ProductDetailPage = () => {
@@ -16,6 +17,7 @@ const ProductDetailPage = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     fetchProduit();
@@ -48,12 +50,19 @@ const ProductDetailPage = () => {
         quantite: quantity,
       });
       
-      toast.success(`${produit.nom} ajoute au panier !`);
+      toast.success(`${produit.nom} ajoute au panier`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Erreur lors de l'ajout au panier");
     } finally {
       setAddingToCart(false);
     }
+  };
+
+  const getImageUrl = () => {
+    if (produit?.image && !imageError) {
+      return `${MEDIA_URL}${produit.image}`;
+    }
+    return null;
   };
 
   if (loading) return <LoadingSpinner />;
@@ -63,7 +72,6 @@ const ProductDetailPage = () => {
   return (
     <div className="bg-[#E6E6FA] min-h-screen">
       <div className="container mx-auto px-4 py-8">
-        {/* Fil d'Ariane */}
         <div className="text-sm text-gray-500 mb-4">
           <button onClick={() => navigate('/')} className="hover:text-[#9370DB]">Accueil</button>
           <span className="mx-2">/</span>
@@ -78,16 +86,24 @@ const ProductDetailPage = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Image */}
           <div className="bg-white rounded-lg shadow-md p-8">
-            <img
-              src={produit.image || 'https://via.placeholder.com/500'}
-              alt={produit.nom}
-              className="w-full h-96 object-cover rounded-lg"
-            />
+            {getImageUrl() ? (
+              <img
+                src={getImageUrl()}
+                alt={produit.nom}
+                className="w-full h-96 object-cover rounded-lg"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-96 flex items-center justify-center bg-gray-100 rounded-lg">
+                <div className="text-center">
+                  <FiImage className="text-6xl text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-400">Aucune image disponible</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Infos */}
           <div className="bg-white rounded-lg shadow-md p-8">
             <div className="inline-block bg-[#E6E6FA] text-[#800080] px-3 py-1 rounded-full text-sm mb-4">
               {produit.categorie_nom || 'Non categorise'}
@@ -107,7 +123,7 @@ const ProductDetailPage = () => {
                 </span>
               ) : produit.stock > 0 ? (
                 <span className="text-orange-600 font-semibold">
-                  Plus que {produit.stock} en stock !
+                  Plus que {produit.stock} en stock
                 </span>
               ) : (
                 <span className="text-red-600 font-semibold">Rupture de stock</span>

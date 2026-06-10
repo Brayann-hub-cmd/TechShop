@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
+import { MEDIA_URL } from '../api';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
-import { FiTrash2, FiShoppingBag, FiArrowRight } from 'react-icons/fi';
+import { FiTrash2, FiShoppingBag, FiArrowRight, FiImage } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const CartPage = () => {
   const [panier, setPanier] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
@@ -55,6 +57,17 @@ const CartPage = () => {
     }
   };
 
+  const handleImageError = (ligneId) => {
+    setImageErrors({ ...imageErrors, [ligneId]: true });
+  };
+
+  const getImageUrl = (ligne) => {
+    if (ligne.produit_image && !imageErrors[ligne.id]) {
+      return `${MEDIA_URL}${ligne.produit_image}`;
+    }
+    return null;
+  };
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -97,16 +110,24 @@ const CartPage = () => {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Liste des articles */}
           <div className="lg:col-span-2 space-y-4">
             {panier.lignes.map((ligne) => (
               <div key={ligne.id} className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={ligne.produit_image || 'https://via.placeholder.com/100'}
-                    alt={ligne.produit_nom}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
+                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    {getImageUrl(ligne) ? (
+                      <img
+                        src={getImageUrl(ligne)}
+                        alt={ligne.produit_nom}
+                        className="w-full h-full object-cover"
+                        onError={() => handleImageError(ligne.id)}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FiImage className="text-2xl text-gray-300" />
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{ligne.produit_nom}</h3>
                     <p className="text-[#9370DB] font-bold">
@@ -138,7 +159,6 @@ const CartPage = () => {
             </button>
           </div>
 
-          {/* Resume */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-2xl font-bold text-[#800080] mb-4">Resume</h2>

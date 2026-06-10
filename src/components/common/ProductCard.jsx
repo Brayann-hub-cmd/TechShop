@@ -1,15 +1,32 @@
 import { Link } from 'react-router-dom';
-import { FiShoppingCart, FiEye } from 'react-icons/fi';
+import { FiShoppingCart, FiEye, FiImage } from 'react-icons/fi';
+import { MEDIA_URL } from '../../api';
 
 const ProductCard = ({ product }) => {
+  const imageUrl = product.image 
+    ? `${MEDIA_URL}${product.image}` 
+    : null;
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <div className="h-48 bg-gray-100">
-        <img
-          src={product.image || 'https://via.placeholder.com/300'}
-          alt={product.nom}
-          className="w-full h-full object-cover"
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.nom}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.parentNode.classList.add('flex', 'items-center', 'justify-center');
+              const icon = document.createElement('div');
+              icon.innerHTML = '<svg>...</svg>';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <FiImage className="text-4xl text-gray-300" />
+          </div>
+        )}
       </div>
       
       <div className="p-4">
@@ -33,7 +50,7 @@ const ProductCard = ({ product }) => {
             className="flex-1 text-center border border-[#9370DB] text-[#9370DB] py-2 rounded-lg hover:bg-[#9370DB] hover:text-white transition text-sm flex items-center justify-center gap-1"
           >
             <FiEye />
-            <span>Détails</span>
+            <span>Details</span>
           </Link>
           <button
             className="flex-1 bg-[#9370DB] text-white py-2 rounded-lg hover:bg-[#800080] transition text-sm flex items-center justify-center gap-1"
