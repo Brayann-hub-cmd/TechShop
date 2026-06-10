@@ -15,6 +15,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
+import ContactPage from './pages/contacts';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/catalogue" element={<CataloguePage />} />
             <Route path="/produits/:id" element={<ProductDetailPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             
             {/* Routes utilisateur connecte */}
             <Route path="/panier" element={<CartPage />} />

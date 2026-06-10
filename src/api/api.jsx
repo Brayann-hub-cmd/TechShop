@@ -1,10 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// api.jsx  —  Couche d'accès à l'API backend
-// ─────────────────────────────────────────────────────────────────────────────
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
-
-// ─── HELPER FETCH ─────────────────────────────────────────────────────────────
+const BASE_URL = import.meta.env.VITE_API_URL+'/api' ?? "http://localhost:8000/api";
 
 async function request(method, path, body = undefined, withAuth = true) {
   const headers = {

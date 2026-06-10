@@ -29,7 +29,6 @@ function LoginPage() {
         navigate('/');
       }, 1500);
     } catch (error) {
-      console.log(error);
       toast.error(error.message || 'Erreur de connexion');
     }
   };
