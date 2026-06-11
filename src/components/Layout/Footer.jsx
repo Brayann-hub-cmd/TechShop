@@ -42,7 +42,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-gray-500">
               <li className="flex items-center gap-2">
                 <FiPhone />
-                <span>+237 6XX XXX XXX</span>
+                <span>+237 691 333 780</span>
               </li>
               <li className="flex items-center gap-2">
                 <FiMail />

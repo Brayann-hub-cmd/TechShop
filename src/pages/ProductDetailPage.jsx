@@ -60,7 +60,7 @@ const ProductDetailPage = () => {
 
   const getImageUrl = () => {
     if (produit?.image && !imageError) {
-      return `${MEDIA_URL}${produit.image}`;
+      return `${produit.image}`;
     }
     return null;
   };
