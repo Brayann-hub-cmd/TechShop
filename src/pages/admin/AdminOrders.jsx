@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import api from '../../api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorMessage from '../../components/common/ErrorMessage';
-import { 
-  FiPackage, 
-  FiEye, 
-  FiX, 
-  FiTruck, 
+import {
+  FiPackage,
+  FiEye,
+  FiX,
+  FiTruck,
   FiCheck,
   FiClock,
   FiSearch
@@ -74,12 +74,34 @@ const AdminOrders = () => {
     };
     return statuses[statut] || statuses.en_attente;
   };
+  const paiements = async () => {
+    try {
+      if (selectedCommande) {
+        await api.post('paiements/', {
+          commande_id: selectedCommande.id,
+          montant: selectedCommande.montant_total,
+          mode_paiement: "espece",
+        });
+
+        toast.success('Paiement enregistré avec succes');
+        setTimeout(() => {
+          navigate('/admin/commandes');
+        }, 2000);
+      }else{
+        toast.error('Selectionner une commande.')
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la commande');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const filteredCommandes = commandes.filter(commande => {
     const matchFilter = filter ? commande.statut === filter : true;
     const matchSearch = searchTerm
       ? commande.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        commande.client_nom?.toLowerCase().includes(searchTerm.toLowerCase())
+      commande.client_nom?.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
     return matchFilter && matchSearch;
   });
@@ -237,9 +259,8 @@ const AdminOrders = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Statut</p>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${
-                      getStatusBadge(selectedCommande.statut).color
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit ${getStatusBadge(selectedCommande.statut).color
+                      }`}>
                       {getStatusBadge(selectedCommande.statut).icon}
                       <span>{getStatusBadge(selectedCommande.statut).label}</span>
                     </span>
@@ -290,11 +311,10 @@ const AdminOrders = () => {
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <div className="flex justify-between">
                         <span>Mode: {selectedCommande.paiements[0].mode_paiement}</span>
-                        <span className={`font-semibold ${
-                          selectedCommande.paiements[0].statut === 'valide' ? 'text-green-600' :
-                          selectedCommande.paiements[0].statut === 'echoue' ? 'text-red-600' :
-                          'text-yellow-600'
-                        }`}>
+                        <span className={`font-semibold ${selectedCommande.paiements[0].statut === 'valide' ? 'text-green-600' :
+                            selectedCommande.paiements[0].statut === 'echoue' ? 'text-red-600' :
+                              'text-yellow-600'
+                          }`}>
                           {selectedCommande.paiements[0].statut}
                         </span>
                       </div>

@@ -14,12 +14,12 @@ const CheckoutPage = () => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
-  
+
   const [livraison, setLivraison] = useState({
     adresse_livraison: '',
     telephone: '',
   });
-  
+
   const [paiement, setPaiement] = useState({
     mode_paiement: 'mobile_money',
   });
@@ -56,23 +56,25 @@ const CheckoutPage = () => {
   const handleSubmitOrder = async () => {
     try {
       setSubmitting(true);
-      
-      const commandeRes = await api.post('panier/vider/');
+
+      const commandeRes = await api.post('commandes/', {
+        "adresse_livraison": livraison.adresse_livraison
+      });
       const commandeId = commandeRes.data.commande_id;
-      
+
       await api.post('paiements/', {
         commande_id: commandeId,
         montant: panier.total,
         mode_paiement: paiement.mode_paiement,
       });
-      
+
       toast.success('Commande creee avec succes');
       setStep(3);
-      
+      await api.post('panier/vider/')
       setTimeout(() => {
         navigate('/commandes');
       }, 3000);
-      
+
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de la commande');
     } finally {
@@ -133,17 +135,14 @@ const CheckoutPage = () => {
 
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-              step >= 1 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
-            }`}>1</div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 1 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
+              }`}>1</div>
             <div className={`h-1 w-16 ${step >= 2 ? 'bg-[#9370DB]' : 'bg-gray-300'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-              step >= 2 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
-            }`}>2</div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 2 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
+              }`}>2</div>
             <div className={`h-1 w-16 ${step >= 3 ? 'bg-[#9370DB]' : 'bg-gray-300'}`}></div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-              step >= 3 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
-            }`}>3</div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${step >= 3 ? 'bg-[#9370DB] text-white' : 'bg-gray-300'
+              }`}>3</div>
           </div>
         </div>
 
@@ -155,7 +154,7 @@ const CheckoutPage = () => {
                   <FiMapPin />
                   <span>Adresse de livraison</span>
                 </h2>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,7 +164,7 @@ const CheckoutPage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#9370DB] focus:border-[#9370DB]"
                       placeholder="Votre adresse de livraison"
                       value={livraison.adresse_livraison}
-                      onChange={(e) => setLivraison({...livraison, adresse_livraison: e.target.value})}
+                      onChange={(e) => setLivraison({ ...livraison, adresse_livraison: e.target.value })}
                       rows={3}
                       required
                     />
@@ -181,7 +180,7 @@ const CheckoutPage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#9370DB] focus:border-[#9370DB]"
                       placeholder="+237 6XX XXX XXX"
                       value={livraison.telephone}
-                      onChange={(e) => setLivraison({...livraison, telephone: e.target.value})}
+                      onChange={(e) => setLivraison({ ...livraison, telephone: e.target.value })}
                       required
                     />
                   </div>
@@ -212,7 +211,7 @@ const CheckoutPage = () => {
                       value="mobile_money"
                       className="text-[#9370DB] focus:ring-[#9370DB]"
                       checked={paiement.mode_paiement === 'mobile_money'}
-                      onChange={(e) => setPaiement({...paiement, mode_paiement: e.target.value})}
+                      onChange={(e) => setPaiement({ ...paiement, mode_paiement: e.target.value })}
                     />
                     <FiSmartphone className="text-2xl text-[#9370DB]" />
                     <div>
@@ -228,7 +227,7 @@ const CheckoutPage = () => {
                       value="carte"
                       className="text-[#9370DB] focus:ring-[#9370DB]"
                       checked={paiement.mode_paiement === 'carte'}
-                      onChange={(e) => setPaiement({...paiement, mode_paiement: e.target.value})}
+                      onChange={(e) => setPaiement({ ...paiement, mode_paiement: e.target.value })}
                     />
                     <FiCreditCard className="text-2xl text-[#9370DB]" />
                     <div>
@@ -244,7 +243,7 @@ const CheckoutPage = () => {
                       value="especes"
                       className="text-[#9370DB] focus:ring-[#9370DB]"
                       checked={paiement.mode_paiement === 'especes'}
-                      onChange={(e) => setPaiement({...paiement, mode_paiement: e.target.value})}
+                      onChange={(e) => setPaiement({ ...paiement, mode_paiement: e.target.value })}
                     />
                     <FiDollarSign className="text-2xl text-[#9370DB]" />
                     <div>
@@ -276,7 +275,7 @@ const CheckoutPage = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-2xl font-bold text-[#800080] mb-4">Ma commande</h2>
-              
+
               <div className="space-y-3 max-h-60 overflow-y-auto mb-4">
                 {panier.lignes.map((ligne) => (
                   <div key={ligne.id} className="flex items-center gap-3">
@@ -304,9 +303,9 @@ const CheckoutPage = () => {
                   </div>
                 ))}
               </div>
-              
+
               <hr className="my-4" />
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-600">
                   <span>Sous-total</span>
